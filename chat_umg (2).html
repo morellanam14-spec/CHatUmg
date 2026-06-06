@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chat UMG — Examen Final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+  --paper:#f5f3ef;--paper2:#ece9e2;--paper3:#ddd9d0;
+  --accent:#c94f3a;--accent3:#3a7ca5;
+  --green:#2d6a4f;--greenl:#d8f3dc;
+  --mono:'DM Mono',monospace;--serif:'Fraunces',serif;
+}
+body{background:var(--paper);color:var(--ink);font-family:var(--mono);min-height:100vh;display:flex;flex-direction:column}
+.nav{background:var(--ink);color:var(--paper);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--accent);position:sticky;top:0;z-index:100}
+.nav-brand{font-family:var(--serif);font-size:1.15rem;font-style:italic}
+.nav-right{display:flex;align-items:center;gap:1.5rem}
+.nav-status{font-size:.72rem;color:var(--ink3);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink3);flex-shrink:0}
+.dot.on{background:#4ade80}
+.nav-tabs{display:flex;gap:4px}
+.tab-btn{background:none;border:none;color:var(--ink3);font-family:var(--mono);font-size:.75rem;padding:7px 16px;cursor:pointer;border-radius:4px;transition:all .15s}
+.tab-btn:hover{color:var(--paper);background:rgba(255,255,255,.1)}
+.tab-btn.active{color:var(--paper);background:var(--accent)}
+.main{flex:1;padding:2.5rem 2rem;max-width:960px;margin:0 auto;width:100%}
+.page{display:none}
+.page.active{display:block}
+.login-wrap{display:flex;justify-content:center;padding-top:2rem}
+.login-card{background:var(--paper2);border:1.5px solid var(--paper3);border-radius:6px;padding:2.5rem 2rem;width:100%;max-width:420px}
+.login-title{font-family:var(--serif);font-size:2rem;font-style:italic;margin-bottom:.3rem}
+.login-sub{font-size:.73rem;color:var(--ink3);margin-bottom:2rem;line-height:1.6}
+.field{margin-bottom:1.2rem}
+.field label{display:block;font-size:.7rem;color:var(--ink2);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.field input,.field textarea{width:100%;background:var(--paper);border:1.5px solid var(--paper3);border-radius:4px;padding:10px 13px;font-family:var(--mono);font-size:.85rem;color:var(--ink);outline:none;transition:border-color .15s}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.field .hint{font-size:.68rem;color:var(--ink3);margin-top:5px;line-height:1.5}
+.field textarea{resize:vertical;min-height:100px}
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:12px;font-family:var(--mono);font-size:.85rem;cursor:pointer;transition:opacity .15s;font-weight:500}
+.btn-primary:hover{opacity:.87}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.msg-box{border-radius:4px;padding:11px 14px;font-size:.78rem;margin-top:1rem;line-height:1.6;display:none}
+.msg-box.err{background:#fde8e5;border:1px solid #f5c6c0;color:#7a2018;display:block}
+.msg-box.ok{background:var(--greenl);border:1px solid #95d5b2;color:var(--green);display:block}
+.token-display{background:var(--ink);border-radius:4px;padding:12px 14px;margin-top:1rem;display:none}
+.token-label{font-size:.64rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.token-val{font-size:.7rem;color:#4ade80;word-break:break-all;line-height:1.6}
+.section-title{font-family:var(--serif);font-size:1.5rem;font-style:italic;margin-bottom:1.5rem}
+.form-card{background:var(--paper2);border:1.5px solid var(--paper3);border-radius:6px;padding:1.8rem}
+.form-row{display:flex;gap:14px;margin-bottom:1.2rem}
+.form-row .field{flex:1;margin-bottom:0}
+.send-row{display:flex;justify-content:flex-end;margin-top:1rem;gap:10px;align-items:center}
+.btn-send{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:11px 28px;font-family:var(--mono);font-size:.83rem;cursor:pointer;transition:opacity .15s;font-weight:500}
+.btn-send:hover{opacity:.87}
+.btn-send:disabled{opacity:.45;cursor:not-allowed}
+
+/* CHAT */
+.chat-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:12px}
+.chat-top-left{display:flex;flex-direction:column;gap:6px}
+.sala-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sala-label{font-size:.72rem;color:var(--ink2)}
+.sala-input{background:var(--paper);border:1.5px solid var(--paper3);border-radius:4px;padding:6px 10px;font-family:var(--mono);font-size:.82rem;color:var(--ink);outline:none;width:80px;transition:border-color .15s}
+.sala-input:focus{border-color:var(--accent)}
+.btn-refresh{background:none;border:1.5px solid var(--paper3);border-radius:4px;padding:8px 18px;font-family:var(--mono);font-size:.75rem;color:var(--ink2);cursor:pointer;transition:all .15s}
+.btn-refresh:hover{border-color:var(--accent3);color:var(--accent3)}
+.btn-refresh:disabled{opacity:.45;cursor:not-allowed}
+.chat-count{font-size:.72rem;color:var(--ink3)}
+.chat-wrap{background:var(--paper2);border:1.5px solid var(--paper3);border-radius:6px;overflow-y:auto;max-height:440px;padding:1.2rem;display:flex;flex-direction:column;gap:10px}
+.chat-empty{text-align:center;color:var(--ink3);font-size:.8rem;padding:3rem 1rem;line-height:1.9}
+.msg-bubble{background:var(--paper);border-radius:4px;padding:11px 15px;border-left:3px solid var(--paper3)}
+.msg-bubble.mine{border-left-color:var(--accent)}
+.msg-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px}
+.msg-user{font-size:.72rem;font-weight:500;color:var(--accent3)}
+.msg-bubble.mine .msg-user{color:var(--accent)}
+.msg-time{font-size:.67rem;color:var(--ink3);white-space:nowrap}
+.msg-text{font-size:.84rem;line-height:1.65}
+.msg-sala{font-size:.65rem;color:var(--ink3);margin-top:5px}
+.badge{background:var(--paper3);border-radius:3px;padding:1px 7px;font-size:.65rem;color:var(--ink2)}
+.warn-box{background:#fef9e7;border:1.5px solid #f0d060;border-radius:4px;padding:13px 16px;font-size:.77rem;color:#6b4f00;line-height:1.7;margin-bottom:1.2rem}
+
+/* DEBUG */
+.debug-panel{background:#0f0f1a;border:1.5px solid #2a2a4a;border-radius:6px;padding:1.2rem;margin-top:1.5rem}
+.debug-top{font-size:.68rem;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.8rem;display:flex;justify-content:space-between;align-items:center}
+.debug-log{font-size:.72rem;color:#93c5fd;line-height:1.8;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.debug-log .ok{color:#4ade80}
+.debug-log .err{color:#f87171}
+.debug-log .warn{color:#fbbf24}
+.debug-log .info{color:#a78bfa}
+.btn-clear{background:none;border:1px solid #333;border-radius:3px;padding:3px 10px;font-family:var(--mono);font-size:.65rem;color:#666;cursor:pointer}
+
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:7px}
+.spinner.dark{border-color:rgba(0,0,0,.15);border-top-color:var(--ink2)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row{display:flex;align-items:center;justify-content:center;padding:2rem;font-size:.78rem;color:var(--ink3)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-brand">💬 Chat UMG — Examen Final</span>
+  <div class="nav-right">
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showPage('login')">Serie I — Login</button>
+      <button class="tab-btn" onclick="showPage('mensajes')">Serie II — Mensajes</button>
+      <button class="tab-btn" onclick="showPage('chat')">Serie III — Chat</button>
+    </div>
+    <div class="nav-status">
+      <span class="dot" id="dot"></span>
+      <span id="status-lbl">Sin autenticar</span>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- SERIE I -->
+  <div class="page active" id="page-login">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-title">Iniciar sesión</div>
+        <div class="login-sub">Serie I — Autenticación<br>POST /api/login/authenticate</div>
+        <div class="field">
+          <label>Usuario</label>
+          <input type="text" id="username" placeholder="ej: morellanam14" value="morellanam14" autocomplete="username"/>
+          <div class="hint">Solo la parte antes de @miumg.edu.gt</div>
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="password" placeholder="123456a" autocomplete="current-password"/>
+        </div>
+        <button class="btn-primary" id="btn-login" onclick="doLogin()">Autenticar →</button>
+        <div class="msg-box" id="login-msg"></div>
+        <div class="token-display" id="token-box">
+          <div class="token-label">✓ Bearer Token (guardado en sessionStorage)</div>
+          <div class="token-val" id="token-preview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERIE II -->
+  <div class="page" id="page-mensajes">
+    <div class="section-title">Envío de mensajes</div>
+    <div id="no-auth-warn" class="warn-box" style="display:none">⚠️ Sin sesión activa. Autentíquese primero en la <strong>Serie I</strong>.</div>
+    <div class="form-card" id="msg-form-card">
+      <div class="form-row">
+        <div class="field">
+          <label>Login_Emisor</label>
+          <input type="text" id="emisor" readonly/>
+        </div>
+        <div class="field" style="max-width:140px">
+          <label>Cod_Sala</label>
+          <input type="number" id="cod-sala" value="0" min="0"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Contenido</label>
+        <textarea id="contenido" placeholder="Escribe tu mensaje aquí..."></textarea>
+      </div>
+      <div class="send-row">
+        <button class="btn-send" id="btn-enviar" onclick="doEnviar()">Enviar mensaje →</button>
+      </div>
+      <div class="msg-box" id="enviar-msg"></div>
+    </div>
+  </div>
+
+  <!-- SERIE III -->
+  <div class="page" id="page-chat">
+    <div class="section-title">Vista del chat — Serie III</div>
+
+    <div class="chat-top">
+      <div class="chat-top-left">
+        <div class="sala-row">
+          <span class="sala-label">Cod_Sala:</span>
+          <input class="sala-input" type="number" id="sala-filtro" value="0" min="0" placeholder="0"/>
+          <button class="btn-refresh" id="btn-ref" onclick="loadMensajes()">↻ Cargar mensajes</button>
+          <span class="chat-count" id="chat-count"></span>
+        </div>
+        <div style="font-size:.68rem;color:var(--ink3)">Si no cargan, prueba con otro número de sala (1, 2, 3...)</div>
+      </div>
+    </div>
+
+    <div class="chat-wrap" id="chat-wrap">
+      <div class="chat-empty">Presiona "Cargar mensajes" para ver el chat.</div>
+    </div>
+
+    <div class="debug-panel">
+      <div class="debug-top">
+        <span>🔍 Diagnóstico de endpoints</span>
+        <button class="btn-clear" onclick="clearLog()">Limpiar</button>
+      </div>
+      <div class="debug-log" id="debug-log">Aquí verás el resultado de cada petición...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://backcvbgtmdesa.azurewebsites.net/api';
+let token = null;
+let currentUser = null;
+
+function dbg(msg, type='info'){
+  const el=document.getElementById('debug-log');
+  if(!el) return;
+  const t=new Date().toLocaleTimeString('es-GT');
+  const s=document.createElement('span');
+  s.className=type;
+  s.textContent=`[${t}] ${msg}\n`;
+  el.appendChild(s);
+  el.scrollTop=el.scrollHeight;
+}
+function clearLog(){document.getElementById('debug-log').innerHTML='';}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const idx={login:0,mensajes:1,chat:2}[p];
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if(p==='mensajes') checkAuth();
+  if(p==='chat') loadMensajes();
+}
+function setStatus(on,lbl){
+  document.getElementById('dot').className='dot'+(on?' on':'');
+  document.getElementById('status-lbl').textContent=lbl;
+}
+function showMsg(id,txt,type){
+  const el=document.getElementById(id);
+  el.className='msg-box '+type;
+  el.innerHTML=txt;
+  el.style.display='block';
+}
+function checkAuth(){
+  const warn=document.getElementById('no-auth-warn');
+  const form=document.getElementById('msg-form-card');
+  if(!token){warn.style.display='block';form.style.opacity='.5';form.style.pointerEvents='none';}
+  else{warn.style.display='none';form.style.opacity='1';form.style.pointerEvents='auto';}
+}
+
+/* ── SERIE I ── */
+async function doLogin(){
+  const u=document.getElementById('username').value.trim();
+  const pw=document.getElementById('password').value.trim();
+  if(!u||!pw){showMsg('login-msg','Ingresa usuario y contraseña.','err');return;}
+  const btn=document.getElementById('btn-login');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Autenticando...';
+  document.getElementById('login-msg').style.display='none';
+  try{
+    const r=await fetch(API+'/login/authenticate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({Username:u,Password:pw})
+    });
+    const ct=r.headers.get('content-type')||'';
+    const data=ct.includes('json')?await r.json():await r.text();
+    if(r.ok){
+      token=typeof data==='string'?data
+        :data.token||data.Token||data.accessToken||data.access_token
+        ||data.bearerToken||data.BearerToken||data.jwt||data.JWT
+        ||(data.data&&(data.data.token||data.data.Token))
+        ||JSON.stringify(data);
+      currentUser=u;
+      sessionStorage.setItem('umg_token',token);
+      sessionStorage.setItem('umg_user',u);
+      document.getElementById('emisor').value=u;
+      setStatus(true,'Autenticado: '+u);
+      showMsg('login-msg','✓ Autenticación exitosa. Token guardado.','ok');
+      const box=document.getElementById('token-box');
+      box.style.display='block';
+      document.getElementById('token-preview').textContent=token.length>140?token.substring(0,140)+'…':token;
+    } else {
+      const em=typeof data==='object'?(data.message||data.Message||data.error||JSON.stringify(data)):data;
+      showMsg('login-msg','✗ Error '+r.status+': '+em,'err');
+    }
+  }catch(e){showMsg('login-msg','✗ Error de red: '+e.message,'err');}
+  btn.disabled=false; btn.textContent='Autenticar →';
+}
+
+/* ── SERIE II ── */
+async function doEnviar(){
+  if(!token){showMsg('enviar-msg','Sin token. Autentíquese en Serie I.','err');return;}
+  const contenido=document.getElementById('contenido').value.trim();
+  if(!contenido){showMsg('enviar-msg','Escribe un mensaje antes de enviar.','err');return;}
+  const sala=parseInt(document.getElementById('cod-sala').value)||0;
+  const btn=document.getElementById('btn-enviar');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Enviando...';
+  document.getElementById('enviar-msg').style.display='none';
+  const body={Cod_Sala:sala,Login_Emisor:currentUser,Contenido:contenido};
+  try{
+    const r=await fetch(API+'/Mensajes',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){
+      showMsg('enviar-msg','✓ Mensaje enviado correctamente a la sala '+sala+'.','ok');
+      document.getElementById('contenido').value='';
+      // Sincronizar sala en Serie III
+      document.getElementById('sala-filtro').value=sala;
+    } else {
+      let e=''; try{e=await r.text();}catch(x){}
+      showMsg('enviar-msg','✗ Error '+r.status+': '+e,'err');
+    }
+  }catch(e){showMsg('enviar-msg','✗ Error: '+e.message,'err');}
+  btn.disabled=false; btn.textContent='Enviar mensaje →';
+}
+
+/* ── SERIE III ── */
+async function loadMensajes(){
+  const c=document.getElementById('chat-wrap');
+  const btn=document.getElementById('btn-ref');
+  const sala=parseInt(document.getElementById('sala-filtro').value)||0;
+
+  c.innerHTML='<div class="loading-row"><span class="spinner dark"></span>Buscando mensajes...</div>';
+  document.getElementById('chat-count').textContent='';
+  btn.disabled=true;
+
+  const savedToken=token||sessionStorage.getItem('umg_token');
+  const savedUser=currentUser||sessionStorage.getItem('umg_user');
+  const ah={'Content-Type':'application/json','Authorization':'Bearer '+(savedToken||'')};
+  const nh={'Content-Type':'application/json'};
+
+  // Generar todos los endpoints a probar con la sala actual
+  const urls=[
+    // Con auth, sala variable
+    {u:`${API}/Mensajes/${sala}`,         h:ah},
+    {u:`${API}/Mensajes/sala/${sala}`,    h:ah},
+    {u:`${API}/Mensajes/Sala/${sala}`,    h:ah},
+    {u:`${API}/Mensajes/GetBySala/${sala}`,h:ah},
+    {u:`${API}/Mensajes?Cod_Sala=${sala}`,h:ah},
+    {u:`${API}/Mensajes?sala=${sala}`,    h:ah},
+    {u:`${API}/Mensajes?codSala=${sala}`, h:ah},
+    // Sin parámetro de sala
+    {u:`${API}/Mensajes`,                 h:ah},
+    {u:`${API}/Mensajes/GetAll`,          h:ah},
+    {u:`${API}/Mensajes/all`,             h:ah},
+    {u:`${API}/Chat`,                     h:ah},
+    {u:`${API}/Chat/${sala}`,             h:ah},
+    {u:`${API}/Chat/Mensaje`,             h:ah},
+    {u:`${API}/ChatMensaje/${sala}`,      h:ah},
+    {u:`${API}/Mensajes`,                 h:nh},
+  ];
+
+  dbg(`--- Iniciando búsqueda (Sala: ${sala}) ---`,'info');
+  if(savedToken) dbg('Token: '+savedToken.substring(0,40)+'...','ok');
+  else dbg('⚠️ Sin token — autentícate primero en Serie I','warn');
+
+  let mensajes=null, successUrl='';
+
+  for(const a of urls){
+    const shortUrl=a.u.replace(API,'');
+    try{
+      dbg(`GET ${shortUrl}`,'info');
+      const r=await fetch(a.u,{method:'GET',headers:a.h});
+      const status=r.status;
+      if(status===200){
+        const ct=r.headers.get('content-type')||'';
+        if(ct.includes('json')){
+          const d=await r.json();
+          const raw=JSON.stringify(d).substring(0,180);
+          dbg(`  ✓ 200 OK → ${raw}`,'ok');
+          const arr=Array.isArray(d)?d:d?.data||d?.Data||d?.mensajes||d?.Mensajes||d?.result||d?.Result||null;
+          if(Array.isArray(arr)){mensajes=arr;successUrl=shortUrl;break;}
+          // Si es objeto individual, envolver
+          if(d&&typeof d==='object'){mensajes=[d];successUrl=shortUrl;break;}
+        } else {
+          const txt=await r.text();
+          dbg(`  200 pero no JSON: ${txt.substring(0,100)}`,'warn');
+        }
+      } else if(status===401){
+        dbg(`  ✗ 401 Sin autorización — token expirado o inválido`,'err');
+      } else if(status===404){
+        dbg(`  — 404 No existe`,'warn');
+      } else if(status===405){
+        dbg(`  — 405 Método GET no permitido`,'warn');
+      } else {
+        dbg(`  ✗ ${status}`,'err');
+      }
+    }catch(e){
+      dbg(`  ✗ Error red: ${e.message}`,'err');
+    }
+  }
+
+  btn.disabled=false;
+  c.innerHTML='';
+
+  if(mensajes===null){
+    c.innerHTML=`<div class="chat-empty">
+      ⚠️ Ningún endpoint devolvió mensajes.<br><br>
+      <strong>Revisa el diagnóstico abajo.</strong><br><br>
+      Si todos dicen 405 → el endpoint GET necesita un parámetro<br>
+      distinto. Pregunta a tu docente cuál es el endpoint correcto<br>
+      para leer mensajes (GET).<br><br>
+      Si ves 401 → vuelve a la Serie I y autentícate de nuevo.
+    </div>`;
+    document.getElementById('chat-count').textContent='Sin datos';
+    dbg('RESULTADO FINAL: Ningún endpoint retornó mensajes.','err');
+    return;
+  }
+  if(mensajes.length===0){
+    c.innerHTML='<div class="chat-empty">📭 La sala '+sala+' no tiene mensajes aún.<br>Envía uno desde la Serie II.</div>';
+    document.getElementById('chat-count').textContent='0 mensajes';
+    dbg('Array vacío — sala sin mensajes.','warn');
+    return;
+  }
+
+  dbg(`✓ ${mensajes.length} mensajes obtenidos desde ${successUrl}`,'ok');
+
+  const sorted=[...mensajes].sort((a,b)=>{
+    const ta=new Date(a.Fecha_Hora||a.fecha_hora||a.FechaHora||a.createdAt||a.Created_At||a.fecha||0);
+    const tb=new Date(b.Fecha_Hora||b.fecha_hora||b.FechaHora||b.createdAt||b.Created_At||b.fecha||0);
+    return ta-tb;
+  });
+
+  sorted.forEach(m=>{
+    const user=m.Login_Emisor||m.login_emisor||m.Emisor||m.emisor||m.Usuario||m.usuario||'?';
+    const cont=m.Contenido||m.contenido||m.Mensaje||m.mensaje||m.content||m.texto||'';
+    const salaM=m.Cod_Sala!==undefined?m.Cod_Sala:(m.cod_sala!==undefined?m.cod_sala:'?');
+    const rawDate=m.Fecha_Hora||m.fecha_hora||m.FechaHora||m.createdAt||m.Created_At||m.fecha||null;
+    let dateStr='';
+    if(rawDate){try{dateStr=new Date(rawDate).toLocaleString('es-GT',{dateStyle:'short',timeStyle:'short'});}catch(x){}}
+    const isMine=(user===savedUser);
+    const div=document.createElement('div');
+    div.className='msg-bubble'+(isMine?' mine':'');
+    div.innerHTML=`
+      <div class="msg-head">
+        <span class="msg-user">${esc(user)}${isMine?' (tú)':''}</span>
+        ${dateStr?`<span class="msg-time">${dateStr}</span>`:''}
+      </div>
+      <div class="msg-text">${esc(cont)}</div>
+      <div class="msg-sala">Sala: <span class="badge">${salaM}</span></div>
+    `;
+    c.appendChild(div);
+  });
+  c.scrollTop=c.scrollHeight;
+  document.getElementById('chat-count').textContent=sorted.length+' mensaje(s)';
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+(function(){
+  const st=sessionStorage.getItem('umg_token');
+  const su=sessionStorage.getItem('umg_user');
+  if(st&&su){token=st;currentUser=su;document.getElementById('emisor').value=su;setStatus(true,'Autenticado: '+su);}
+})();
+document.addEventListener('DOMContentLoaded',()=>{
+  const pw=document.getElementById('password');
+  if(pw) pw.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+});
+</script>
+</body>
+</html>
